@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3D Model</title>
+<style>
+  html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: transparent;
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+  model-viewer { width: 100%; height: 100%; --poster-color: transparent; outline: none; }
+
+  /* Loading bar */
+  .progress { position: absolute; left: 50%; bottom: 50%; width: min(220px, 60%); height: 4px;
+    transform: translateX(-50%); background: rgba(128,128,128,.25); border-radius: 2px; overflow: hidden; transition: opacity .4s; }
+  .progress.done { opacity: 0; pointer-events: none; }
+  .progress .bar { height: 100%; width: 0; background: #1a73e8; transition: width .15s; }
+  .loading-text { position: absolute; left: 0; right: 0; top: calc(50% + 12px); text-align: center; font-size: 13px; color: #666; transition: opacity .4s; }
+  .loading-text.done { opacity: 0; }
+
+  /* Toolbar */
+  .toolbar { position: absolute; right: 12px; top: 12px; display: flex; flex-direction: column; gap: 8px; z-index: 5; }
+  .toolbar button { width: 40px; height: 40px; border: 0; border-radius: 10px; cursor: pointer; font-size: 18px;
+    background: rgba(255,255,255,.92); color: #222; box-shadow: 0 1px 4px rgba(0,0,0,.25); }
+  .toolbar button:hover { background: #fff; }
+  .toolbar button:focus-visible { outline: 2px solid #1a73e8; outline-offset: 2px; }
+  .toolbar button.on { background: #1a73e8; color: #fff; }
+
+  /* Hotspots */
+  .hotspot { display: block; width: 24px; height: 24px; border-radius: 50%; border: 2px solid #fff; background: #1a73e8;
+    box-shadow: 0 1px 4px rgba(0,0,0,.4); cursor: pointer; padding: 0; position: relative; z-index: 3; }
+  .hotspot::after { content: "+"; color: #fff; font-size: 16px; line-height: 20px; display: block; text-align: center; }
+  .hotspot { transition: opacity .25s; }
+  .hotspot:not([data-visible]) { opacity: .6; }
+  .hotspot .label { position: absolute; left: 32px; top: 50%; transform: translateY(-50%); width: max-content; max-width: 190px;
+    background: #fff; color: #222; padding: 8px 10px; border-radius: 8px; font-size: 13px; line-height: 1.35; text-align: left;
+    box-shadow: 0 1px 4px rgba(0,0,0,.3); opacity: 1; pointer-events: none; transition: opacity .2s; }
+  /* Only show a description when its hotspot surface faces the camera. */
+
+  /* Hide both the blue + dot and its description when facing away */
+.hotspot.angle-hidden {
+  opacity: 0 !important;
+  pointer-events: none;
+}
+  .hotspot.angle-hidden .label { opacity: 0 !important; }
+  .hotspot.angle-hidden.open .label { opacity: 1 !important; }
+  .hotspot .label strong { display: block; font-size: 13px; margin-bottom: 2px; }
+  .hotspot .label .desc { display: block; font-size: 12px; color: #555; }
+  /* Descriptions hidden: dots stay, hover or tap a dot to read one description */
+  .hide-info .hotspot .label { opacity: 0; }
+  .hide-info .hotspot:hover .label, .hide-info .hotspot:focus .label, .hide-info .hotspot.open .label { opacity: 1; }
+
+  /* Hint */
+  .hint { position: absolute; left: 50%; bottom: 16px; transform: translateX(-50%); padding: 8px 14px; border-radius: 20px;
+    background: rgba(0,0,0,.65); color: #fff; font-size: 13px; transition: opacity .6s; pointer-events: none; white-space: nowrap; }
+  .hint.hide { opacity: 0; }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+<script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js"></script>
+</head>
+<body>
+
+<model-viewer id="mv"
+  src="https://cdn.jsdelivr.net/gh/GavinHu1998/
+PrecisionDistillerSys
+@main/45-75_opt.glb"
+  alt="3D Model"
+  loading="eager"
+  reveal="auto"
+  auto-rotate
+  auto-rotate-delay="0"
+  rotation-per-second="20deg"
+  camera-controls
+  touch-action="pan-y"
+  interaction-prompt="none"
+  shadow-intensity="1"
+  shadow-softness="0.8"
+  environment-image="neutral"
+  exposure="1.05"
+  min-camera-orbit="auto auto 60%"
+  max-camera-orbit="auto auto 250%">
+
+  <!-- Loading progress -->
+  <div class="progress" id="progress" slot="progress-bar"><div class="bar" id="bar"></div></div>
+  <div class="loading-text" id="loadingText">Loading model...</div>
+
+  <!-- Hotspots: edit the name and description text. Add more with a new slot number. -->
+  <button class="hotspot" slot="hotspot-1" data-position="0.1477m 0.5998m 0.0441m" data-normal="0.9718m 0.2358m -0.0029m" aria-label="Fan switch">
+    <span class="label"><strong>Sterilization on/off Fan Switch</strong><span class="desc">Turns the cooling fan on or off.</span></span>
+  </button>
+  <button class="hotspot" slot="hotspot-2" data-position="0.1478m 0.536m 0.0444m" data-normal="0.9743m 0.2254m 0.0002m" aria-label="Power switch">
+    <span class="label"><strong>Main Power</strong><span class="desc">Main power switch for the unit.</span></span>
+  </button>
+  <button class="hotspot" slot="hotspot-3" data-position="-0.0152m 0.5533m 0.2036m" data-normal="0.0317m 0.8789m 0.476m" aria-label="Fan">
+    <span class="label"><strong>Cooling Intake Vents</strong><span class="desc">Cooling fan that helps condense steam back into water.</span></span>
+  </button>
+  <button class="hotspot" slot="hotspot-4" data-position="0.2146m 0.2009m 0.0291m" data-normal="0.6482m -0.7615m 0.0045m" aria-label="Stainless Steel Faucet">
+    <span class="label"><strong>100% Stainless Steel Pure Water Drain Valve</strong><span class="desc">Stainless steel faucet for dispensing the distilled water.</span></span>
+  </button>
+  <button class="hotspot" slot="hotspot-5" data-position="-0.0077m 0.2837m -0.1993m" data-normal="-0.0001m 0.0m -1.0m" aria-label="Distilled Water Tank">
+    <span class="label"><strong>5-Gallon Storage Tank (304 Stainless Steel)</strong><span class="desc">Collects and delivers the finished distilled water.</span></span>
+  </button>
+  <button class="hotspot" slot="hotspot-6" data-position="-0.2177m 0.3187m -0.0846m" data-normal="-0.9999m 0.0m 0.0159m" aria-label="Stainless Steel Drain">
+    <span class="label"><strong>Stainless Steel Drain</strong><span class="desc">Drain for emptying leftover water and residue from the unit.</span></span>
+  </button>
+    <button class="hotspot" slot="hotspot-7" data-position="-0.033731518191287876m 0.4099340459940125m -0.10058776863409635m" data-normal="-0.08381319694340993m 0.0749948498465699m -0.9936554334952412m" aria-label="Quick Drain Easy Flow Impurities Drain System">
+    <span class="label"><strong>Quick Drain Easy Flow Impurities Drain System</strong><span class="desc">Quickly drains impurities and leftover water from the boiling tank.</span></span>
+  </button>
+  
+  <button class="hotspot" slot="hotspot-8" data-position="-0.12401049763226m 0.5387265554120408m 0.03344064408904295m" data-normal="-0.6473179387550702m 0.5590913408900835m 0.518069839604291m" aria-label="Filling Line Fitting 1/4&quot;">
+    <span class="label"><strong>Filling Line Fitting 1/4"</strong><span class="desc">1/4-inch connection fitting for the raw water inlet line.</span></span>
+  </button>
+  
+  <button class="hotspot" slot="hotspot-9" data-position="-0.14578299340455692m 0.581748903906885m 0.07095016979080447m" data-normal="-0.9145221866661695m 0m -0.4045357463751854m" aria-label="Water Solenoid Automatic Filling Switch">
+    <span class="label"><strong>Water Solenoid Automatic Filling Switch</strong><span class="desc">Solenoid valve that automatically controls the water filling process.</span></span>
+  </button>
+  
+  <button class="hotspot" slot="hotspot-10" data-position="-0.04234068685644645m 0.5542116693473879m 0.14195473357331365m" data-normal="-0.9537149785830948m -1.0740917562151692e-7m 0.3007120543414175m" aria-label="Fan Blade">
+    <span class="label"><strong>Fan Blade</strong><span class="desc">Rotating blade of the cooling fan for efficient heat dissipation.</span></span>
+  </button>
+  
+  <button class="hotspot" slot="hotspot-11" data-position="-0.1269389820242359m 0.4635183740566281m 0.07346576760204579m" data-normal="-0.9982379354588852m 0m 0.05933821880359108m" aria-label="Pump Extracting Fitting">
+    <span class="label"><strong>Pump Extracting Fitting</strong><span class="desc">Connection fitting for the pump to extract and move the distilled water.</span></span>
+  </button>
+  
+  <button class="hotspot" slot="hotspot-12" data-position="-0.13155954998617864m 0.46606354378982634m 0.12665271855826427m" data-normal="-0.9992177134445165m 0m -0.03954694853857093m" aria-label="Power Line in Connector">
+    <span class="label"><strong>Power Line in Connector</strong><span class="desc">Input connector for the main electrical power supply.</span></span>
+  </button>
+  
+  <button class="hotspot" slot="hotspot-13" data-position="-0.05833356760804468m 0.4464902330101353m -0.08890712401801062m" data-normal="-0.9907522158504647m 0m 0.13568362755835447m" aria-label="Drain Line Connector">
+    <span class="label"><strong>Drain Line Connector</strong><span class="desc">Output connector for the wastewater and impurity drain line.</span></span>
+  </button>
+  
+  <button class="hotspot" slot="hotspot-14" data-position="-0.17231598105559973m 0.31282870695688697m 0.09870210340683692m" data-normal="-0.9999999303865881m -0.0003714036364193866m 0.00003586304474787958m" aria-label="Tank Control Box">
+    <span class="label"><strong>Tank Control Box</strong><span class="desc">Electronic control box for managing tank operations and water level sensors.</span></span>
+  </button>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <button id="btnRotate" class="on" title="Auto-rotate" aria-label="Toggle auto-rotate">&#10227;</button>
+    <button id="btnInfo" class="on" title="Show or hide descriptions" aria-label="Show or hide descriptions">&#9432;</button>
+    <button id="btnReset" title="Reset view" aria-label="Reset view">&#8962;</button>
+    <button id="btnFull" title="Fullscreen" aria-label="Toggle fullscreen">&#9974;</button>
+  </div>
+
+  <div class="hint" id="hint">Drag to rotate, pinch or scroll to zoom</div>
+</model-viewer>
+
+<script>
+(function () {
+  var mv = document.getElementById('mv');
+  var bar = document.getElementById('bar');
+  var progress = document.getElementById('progress');
+  var loadingText = document.getElementById('loadingText');
+  var hint = document.getElementById('hint');
+  var btnRotate = document.getElementById('btnRotate');
+  var btnInfo = document.getElementById('btnInfo');
+  var hotspots = mv.querySelectorAll('.hotspot');
+  var idleTimer = null;
+  var userWantsRotate = true;
+
+  // Hide labels on surfaces facing away from the current camera angle.
+  // Hotspot data-normal values are model-space surface normals.
+  function updateHotspotLabelsForView() {
+    var orbit;
+    try { orbit = mv.getCameraOrbit(); } catch (err) { return; }
+    if (!orbit) return;
+
+    // model-viewer orbit: theta is azimuth, phi is polar angle from the top.
+    var sinPhi = Math.sin(orbit.phi);
+    var cameraX = Math.sin(orbit.theta) * sinPhi;
+    var cameraY = Math.cos(orbit.phi);
+    var cameraZ = Math.cos(orbit.theta) * sinPhi;
+
+    hotspots.forEach(function (h) {
+      var raw = (h.getAttribute('data-normal') || '').match(/-?\d*\.?\d+/g);
+      if (!raw || raw.length < 3) return;
+      var nx = Number(raw[0]), ny = Number(raw[1]), nz = Number(raw[2]);
+      var length = Math.hypot(nx, ny, nz) || 1;
+      var facing = (nx * cameraX + ny * cameraY + nz * cameraZ) / length;
+      // A small positive threshold avoids labels popping up at grazing angles.
+      h.classList.toggle('angle-hidden', facing < 0.18);
+    });
+  }
+
+  // Loading progress
+  mv.addEventListener('progress', function (e) {
+    var p = e.detail.totalProgress || 0;
+    bar.style.width = (p * 100) + '%';
+    if (p >= 1) { progress.classList.add('done'); loadingText.classList.add('done'); }
+  });
+  mv.addEventListener('load', function () {
+    updateHotspotLabelsForView();
+    progress.classList.add('done');
+    loadingText.classList.add('done');
+    setTimeout(function () { hint.classList.add('hide'); }, 4000);
+  });
+  mv.addEventListener('error', function () {
+    loadingText.textContent = 'Failed to load the model. Please refresh the page.';
+    loadingText.classList.remove('done');
+  });
+
+  // Pause auto-rotate while the user interacts, resume after 4 seconds of idle
+  function setRotate(on) {
+    if (on) mv.setAttribute('auto-rotate', ''); else mv.removeAttribute('auto-rotate');
+    btnRotate.classList.toggle('on', on);
+  }
+  mv.addEventListener('camera-change', function (e) {
+    updateHotspotLabelsForView();
+    if (e.detail.source !== 'user-interaction') return;
+    hint.classList.add('hide');
+    if (!userWantsRotate) return;
+    setRotate(false);
+    clearTimeout(idleTimer);
+    idleTimer = setTimeout(function () { setRotate(true); }, 60000);
+  });
+
+  // Toolbar
+  btnRotate.addEventListener('click', function () {
+    userWantsRotate = !mv.hasAttribute('auto-rotate');
+    clearTimeout(idleTimer);
+    setRotate(userWantsRotate);
+  });
+  btnInfo.addEventListener('click', function () {
+    var show = mv.classList.toggle('hide-info') === false;
+    btnInfo.classList.toggle('on', show);
+    if (!show) hotspots.forEach(function (o) { o.classList.remove('open'); });
+  });
+  document.getElementById('btnReset').addEventListener('click', function () {
+    hotspots.forEach(function (o) { o.classList.remove('open'); });
+    mv.cameraOrbit = 'auto auto auto';
+    mv.cameraTarget = 'auto auto auto';
+    mv.fieldOfView = 'auto';
+    mv.jumpCameraToGoal();
+  });
+  document.getElementById('btnFull').addEventListener('click', function () {
+    var el = document.documentElement;
+    if (!document.fullscreenElement) { (el.requestFullscreen || el.webkitRequestFullscreen || function () {}).call(el); }
+    else { (document.exitFullscreen || document.webkitExitFullscreen).call(document); }
+  });
+
+  // Click a hotspot: camera flies to it. Use the reset button to return.
+  // hotspots.forEach(function (h) {
+  //   h.addEventListener('click', function () {
+  //     var pos = h.dataset.position.split(' ').map(parseFloat);
+  //     hotspots.forEach(function (o) { o.classList.remove('open'); });
+  //     h.classList.add('open');
+  //     mv.cameraTarget = pos.join('m ') + 'm';
+  //     mv.cameraOrbit = 'auto auto 70%';
+  //   });
+  // });
+
+  // Debug mode: add ?debug=1 to the URL, then click the model to read hotspot coordinates
+  if (location.search.indexOf('debug=1') !== -1) {
+    var box = document.createElement('div');
+    box.style.cssText = 'position:absolute;left:8px;top:8px;background:#000c;color:#fff;font:12px monospace;padding:6px 8px;border-radius:6px;z-index:9;max-width:70%';
+    box.textContent = 'Click the model to get coordinates';
+    document.body.appendChild(box);
+    mv.addEventListener('click', function (e) {
+      var hit = mv.positionAndNormalFromPoint(e.clientX, e.clientY);
+      if (hit) box.textContent = 'data-position="' + hit.position.toString() + '"  data-normal="' + hit.normal.toString() + '"';
+    });
+  }
+})();
+</script>
+</body>
+</html>
