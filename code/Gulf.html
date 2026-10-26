@@ -67,10 +67,10 @@ PrecisionDistillerSys
   alt="3D Model"
   loading="eager"
   reveal="auto"
-  auto-rotate
-  auto-rotate-delay="0"
-  rotation-per-second="20deg"
-  camera-controls
+  camera-orbit="30deg 75deg 120%"
+camera-controls
+auto-rotate-delay="0"
+rotation-per-second="20deg"
   touch-action="pan-y"
   interaction-prompt="none"
   shadow-intensity="1"
@@ -100,7 +100,7 @@ PrecisionDistillerSys
     <span class="label"><strong>100% Stainless Steel Pure Water Drain Valve</strong><span class="desc">Stainless steel faucet for dispensing the distilled water.</span></span>
   </button>
   <button class="hotspot" slot="hotspot-5" data-position="0.09626381350910222m 0.4570234904355271m -0.23186634043399676m" data-normal="-3.422854327750358e-8m 6.106227128317229e-16m -0.9999999999999996m" aria-label="Distilled Water Tank">
-    <span class="label"><strong>5-Gallon Storage Tank (304 Stainless Steel)</strong><span class="desc">Collects and delivers the finished distilled water.</span></span>
+    <span class="label"><strong>12-Gallon Storage Tank (304 Stainless Steel)</strong><span class="desc">Collects and delivers the finished distilled water.</span></span>
   </button>
   <button class="hotspot" slot="hotspot-6" data-position="-0.22687799263645209m 0.2953657216786289m -0.13036948595690057m" data-normal="-0.9968151300606658m 1.0467815935224125e-14m -0.07974707820439689m" aria-label="Stainless Steel Drain">
     <span class="label"><strong>Stainless Steel Drain</strong><span class="desc">Drain for emptying leftover water and residue from the unit.</span></span>
@@ -139,8 +139,8 @@ PrecisionDistillerSys
 
   <!-- Toolbar -->
   <div class="toolbar">
-    <button id="btnRotate" class="on" title="Auto-rotate" aria-label="Toggle auto-rotate">&#10227;</button>
-    <button id="btnInfo" class="on" title="Show or hide descriptions" aria-label="Show or hide descriptions">&#9432;</button>
+    <button id="btnRotate"  title="Auto-rotate" aria-label="Toggle auto-rotate">&#10227;</button>
+    <button id="btnInfo"  title="Show or hide descriptions" aria-label="Show or hide descriptions">&#9432;</button>
     <button id="btnReset" title="Reset view" aria-label="Reset view">&#8962;</button>
     <button id="btnFull" title="Fullscreen" aria-label="Toggle fullscreen">&#9974;</button>
   </div>
@@ -151,6 +151,7 @@ PrecisionDistillerSys
 <script>
 (function () {
   var mv = document.getElementById('mv');
+  mv.classList.add('hide-info');
   var bar = document.getElementById('bar');
   var progress = document.getElementById('progress');
   var loadingText = document.getElementById('loadingText');
@@ -159,7 +160,7 @@ PrecisionDistillerSys
   var btnInfo = document.getElementById('btnInfo');
   var hotspots = mv.querySelectorAll('.hotspot');
   var idleTimer = null;
-  var userWantsRotate = true;
+  var userWantsRotate = false;
 
   // Hide labels on surfaces facing away from the current camera angle.
   // Hotspot data-normal values are model-space surface normals.
