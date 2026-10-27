@@ -67,10 +67,14 @@ PrecisionDistillerSys
   alt="3D Model"
   loading="eager"
   reveal="auto"
-  auto-rotate
-  auto-rotate-delay="0"
-  rotation-per-second="20deg"
-  camera-controls
+
+ 
+camera-orbit="-70deg 75deg 120%"
+camera-controls
+auto-rotate-delay="0"
+rotation-per-second="20deg"
+
+
   touch-action="pan-y"
   interaction-prompt="none"
   shadow-intensity="1"
@@ -137,8 +141,8 @@ PrecisionDistillerSys
 
   <!-- Toolbar -->
   <div class="toolbar">
-    <button id="btnRotate" class="on" title="Auto-rotate" aria-label="Toggle auto-rotate">&#10227;</button>
-    <button id="btnInfo" class="on" title="Show or hide descriptions" aria-label="Show or hide descriptions">&#9432;</button>
+    <button id="btnRotate"  title="Auto-rotate" aria-label="Toggle auto-rotate">&#10227;</button>
+    <button id="btnInfo" title="Show or hide descriptions" aria-label="Show or hide descriptions">&#9432;</button>
     <button id="btnReset" title="Reset view" aria-label="Reset view">&#8962;</button>
     <button id="btnFull" title="Fullscreen" aria-label="Toggle fullscreen">&#9974;</button>
   </div>
@@ -149,6 +153,7 @@ PrecisionDistillerSys
 <script>
 (function () {
   var mv = document.getElementById('mv');
+  mv.classList.add('hide-info');
   var bar = document.getElementById('bar');
   var progress = document.getElementById('progress');
   var loadingText = document.getElementById('loadingText');
@@ -157,7 +162,7 @@ PrecisionDistillerSys
   var btnInfo = document.getElementById('btnInfo');
   var hotspots = mv.querySelectorAll('.hotspot');
   var idleTimer = null;
-  var userWantsRotate = true;
+  var userWantsRotate = false;
 
   // Hide labels on surfaces facing away from the current camera angle.
   // Hotspot data-normal values are model-space surface normals.
