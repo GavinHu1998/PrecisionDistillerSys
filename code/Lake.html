@@ -44,6 +44,63 @@
   .hotspot.angle-hidden .label { opacity: 0 !important; }
   .hotspot.angle-hidden.open .label { opacity: 1 !important; }
   .hotspot .label strong { display: block; font-size: 13px; margin-bottom: 2px; }
+  
+/* Stainless Steel Drain information card */
+.hotspot .drain-label {
+  width: 220px;
+  max-width: 220px;
+  white-space: normal;
+  padding: 12px;
+  box-sizing: border-box;
+}
+
+/* Auto Drain Valve product photo */
+.hotspot .drain-valve-image {
+  display: block;
+  width: 100%;
+  height: 125px;
+  object-fit: contain;
+  margin: 10px 0;
+  border-radius: 6px;
+  background: #f5f8fa;
+}
+
+/* Optional upgrade message */
+.hotspot .upgrade-note {
+  display: block;
+  margin-top: 10px;
+  padding: 9px;
+  border-radius: 6px;
+  background: #eaf5ff;
+  color: #24527a;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.hotspot .upgrade-note strong {
+  display: block;
+  margin-bottom: 4px;
+  color: #1769aa;
+  font-size: 12px;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   .hotspot .label .desc { display: block; font-size: 12px; color: #555; }
   /* Descriptions hidden: dots stay, hover or tap a dot to read one description */
   .hide-info .hotspot .label { opacity: 0; }
@@ -102,11 +159,51 @@ rotation-per-second="20deg"
   </button>
   <button class="hotspot" slot="hotspot-6" data-position="-0.18845411107102975m 0.4662180848934419m -0.11481882699440396m" data-normal="-0.9931505107056695m -3.5506658392292913e-15m 0.11684204331090808m" aria-label="Stainless Steel Drain">
     <span class="label"><strong>Stainless Steel Drain</strong><span class="desc">Drain for emptying leftover water and residue from the unit.</span></span>
-  </button>
+
+  <!-- </button>
     <button class="hotspot" slot="hotspot-7" data-position="-0.18560520943729375m 0.603828652003849m -0.11743573573727609m" data-normal="-0.9987524015555884m -3.5025727498729807e-15m 0.049936363373244363m" aria-label="Quick Drain Easy Flow Impurities Drain System">
     <span class="label"><strong>Quick Drain Easy Flow Impurities Drain System</strong><span class="desc">Quickly drains impurities and leftover water from the boiling tank.</span></span>
-  </button>
+  </button> -->
+
   
+<button class="hotspot" slot="hotspot-7"
+  data-position="-0.18560520943729375m 0.603828652003849m -0.11743573573727609m"
+  data-normal="-0.9987524015555884m -3.5025727498729807e-15m 0.049936363373244363m"
+  aria-label="Quick Drain Easy Flow Impurities Drain System">
+
+  <span class="label drain-label">
+    <strong>Quick Drain Easy Flow Impurities Drain System</strong>
+
+    <img
+      class="drain-valve-image"
+      src="./AutoDrain.png"
+      alt="Optional automatic drain valve"
+    >
+
+    <span class="desc">
+      Drain for emptying leftover water and residue from the unit.
+    </span>
+
+    <span class="upgrade-note">
+      <strong>Optional Upgrade</strong>
+      We can replace the standard drain with an Auto Drain Valve.
+    </span>
+  </span>
+</button>
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
   <button class="hotspot" slot="hotspot-8" data-position="-0.13246211417186518m 0.801927856000938m 0.004760616813740001m" data-normal="1.775944669102358e-11m 0.9960725485389852m -0.08854082700681605m" aria-label="Filling Line Fitting 1/4&quot;">
     <span class="label"><strong>Filling Line Fitting 1/4"</strong><span class="desc">1/4-inch connection fitting for the raw water inlet line.</span></span>
   </button>
