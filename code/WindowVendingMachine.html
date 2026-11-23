@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3D Model</title>
+<style>
+  html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: transparent;
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+  model-viewer { width: 100%; height: 100%; --poster-color: transparent; outline: none; }
+
+  /* Loading bar */
+  .progress { position: absolute; left: 50%; bottom: 50%; width: min(220px, 60%); height: 4px;
+    transform: translateX(-50%); background: rgba(128,128,128,.25); border-radius: 2px; overflow: hidden; transition: opacity .4s; }
+  .progress.done { opacity: 0; pointer-events: none; }
+  .progress .bar { height: 100%; width: 0; background: #1a73e8; transition: width .15s; }
+  .loading-text { position: absolute; left: 0; right: 0; top: calc(50% + 12px); text-align: center; font-size: 13px; color: #666; transition: opacity .4s; }
+  .loading-text.done { opacity: 0; }
+
+  /* Toolbar */
+  .toolbar { position: absolute; right: 12px; top: 12px; display: flex; flex-direction: column; gap: 8px; z-index: 5; }
+  .toolbar button { width: 40px; height: 40px; border: 0; border-radius: 10px; cursor: pointer; font-size: 18px;
+    background: rgba(255,255,255,.92); color: #222; box-shadow: 0 1px 4px rgba(0,0,0,.25); }
+  .toolbar button:hover { background: #fff; }
+  .toolbar button:focus-visible { outline: 2px solid #1a73e8; outline-offset: 2px; }
+  .toolbar button.on { background: #1a73e8; color: #fff; }
+
+  /* Hotspots */
+  .hotspot { display: block; width: 24px; height: 24px; border-radius: 50%; border: 2px solid #fff; background: #1a73e8;
+    box-shadow: 0 1px 4px rgba(0,0,0,.4); cursor: pointer; padding: 0; position: relative; z-index: 3; }
+  .hotspot::after { content: "+"; color: #fff; font-size: 16px; line-height: 20px; display: block; text-align: center; }
+  .hotspot { transition: opacity .25s; }
+  .hotspot:not([data-visible]) { opacity: .6; }
+  .hotspot .label { position: absolute; left: 32px; top: 50%; transform: translateY(-50%); width: max-content; max-width: 190px;
+    background: #fff; color: #222; padding: 8px 10px; border-radius: 8px; font-size: 13px; line-height: 1.35; text-align: left;
+    box-shadow: 0 1px 4px rgba(0,0,0,.3); opacity: 1; pointer-events: none; transition: opacity .2s; }
+  /* Only show a description when its hotspot surface faces the camera. */
+.hotspot.label-left .label {
+    left: auto;
+    right: 32px;
+}
+  /* Hide both the blue + dot and its description when facing away */
+.hotspot.angle-hidden {
+  opacity: 0 !important;
+  pointer-events: none;
+}
+  .hotspot.angle-hidden .label { opacity: 0 !important; }
+  .hotspot.angle-hidden.open .label { opacity: 1 !important; }
+  .hotspot .label strong { display: block; font-size: 13px; margin-bottom: 2px; }
+  .hotspot .label .desc { display: block; font-size: 12px; color: #555; }
+  /* Descriptions hidden: dots stay, hover or tap a dot to read one description */
+  .hide-info .hotspot .label { opacity: 0; }
+  .hide-info .hotspot:hover .label, .hide-info .hotspot:focus .label, .hide-info .hotspot.open .label { opacity: 1; }
+
+  /* Hint */
+  .hint { position: absolute; left: 50%; bottom: 16px; transform: translateX(-50%); padding: 8px 14px; border-radius: 20px;
+    background: rgba(0,0,0,.65); color: #fff; font-size: 13px; transition: opacity .6s; pointer-events: none; white-space: nowrap; }
+  .hint.hide { opacity: 0; }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+<script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js"></script>
+</head>
+<body>
+
+<model-viewer id="mv"
+  src="https://pdc-vol2-010526253820-us-east-1-an.s3.us-east-1.amazonaws.com/WVM_opt.glb"
+  alt="3D Model"
+  loading="eager"
+  reveal="auto"
+  camera-orbit="0deg 90deg 90%"
+  camera-target="0m 0.95m 0m"
+  camera-controls
+  auto-rotate-delay="0"
+  rotation-per-second="20deg"
+  touch-action="pan-y"
+  interaction-prompt="none"
+  shadow-intensity="1"
+  shadow-softness="0.8"
+  environment-image="legacy"
+  exposure="0.9"
+  min-camera-orbit="auto auto 60%"
+  max-camera-orbit="auto auto 250%">
+
+  <!-- Loading progress -->
+  <div class="progress" id="progress" slot="progress-bar"><div class="bar" id="bar"></div></div>
+  <div class="loading-text" id="loadingText">Loading model...</div>
+
+  <!-- Hotspots: edit the name and description text. Add more with a new slot number. -->
+  <button class="hotspot label-left" slot="hotspot-1" data-position="-0.07054083031345461m 1.4497711424709392m 0.12537487596273372m" data-normal="0m 0m 1m" aria-label="Fan switch">
+    <span class="label"><strong>Smart Web-Based Management</strong><span class="desc">Access and manage multiple vending machines remotely through an easy-to-use web interface.</span></span>
+  </button>
+  <button class="hotspot label-left" slot="hotspot-2" data-position="-0.32854011324033844m 1.0511004488592715m 0.10019285976886838m" data-normal="0m 0m 1m" aria-label="Power switch">
+    <span class="label"><strong>Flexible Water Dispensing</strong><span class="desc">Configure three types of water and five preset bottle sizes for precise dispensing.</span></span>
+  </button>
+  <button class="hotspot" slot="hotspot-3" data-position="0.04394293709846037m 1.4473106836495764m 0.12537487596273422m" data-normal="0m 0m 1m" aria-label="Fan">
+    <span class="label"><strong>Built-In Digital Advertising</strong><span class="desc">Store HD video ads with 128GB storage, customizable playlists, and scheduled playback.</span></span>
+  </button>
+  <button class="hotspot" slot="hotspot-4" data-position="0.33001044118817147m 0.7776527185850207m 0.12235448441802556m" data-normal="0.0000025767356812241304m 0.10386964594629051m 0.9945909192448688m" aria-label="Stainless Steel Faucet">
+    <span class="label"><strong>Multiple Payment Options</strong><span class="desc">Accept credit cards, debit cards, membership cards, prepaid cards, and coins.</span></span>
+  </button>
+  <button class="hotspot label-left" slot="hotspot-5" data-position="0.0025656227921006663m 0.8680252270771961m 0.014516741022480018m" data-normal="0m 0.16439476248449392m 0.9863946279596553m" aria-label="Distilled Water Tank">
+    <span class="label"><strong>Smart Pricing & Customer Top-Up</strong><span class="desc">Create flexible discounts and allow customers to conveniently top up their bottles.</span></span>
+  </button>
+  <button class="hotspot label-left" slot="hotspot-6" data-position="-0.3741546121387095m 1.447621949974858m 0.10019285976886749m" data-normal="0m 0m 1m" aria-label="Stainless Steel Drain">
+    <span class="label"><strong>Intelligent Diagnostics & Updates</strong><span class="desc">Simplify troubleshooting with automatic diagnostics and convenient USB or onboard software updates.</span></span>
+  </button>
+    <button class="hotspot" slot="hotspot-7" data-position="0.32241066168460825m 1.312883253713827m 0.10019285976886727m" data-normal="0m 0m 1m" aria-label="Quick Drain Easy Flow Impurities Drain System">
+    <span class="label"><strong>Customize graphics with your brand or name.</strong><span class="desc"></span></span>
+  </button>
+  <button class="hotspot" slot="hotspot-8" data-position="0.3226336240786455m 1.141634372531381m 0.14520569989690557m" data-normal="0m 0m 1m" aria-label="Stainless Steel Faucet">
+    <span class="label"><strong>Multiple Payment Options</strong><span class="desc">Accept credit cards, debit cards, membership cards, prepaid cards, and coins.</span></span>
+  </button>
+  
+  
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <button id="btnRotate"  title="Auto-rotate" aria-label="Toggle auto-rotate">&#10227;</button>
+    <button id="btnInfo"  title="Show or hide descriptions" aria-label="Show or hide descriptions">&#9432;</button>
+    <button id="btnReset" title="Reset view" aria-label="Reset view">&#8962;</button>
+    <button id="btnFull" title="Fullscreen" aria-label="Toggle fullscreen">&#9974;</button>
+  </div>
+
+  <div class="hint" id="hint">Drag to rotate, pinch or scroll to zoom</div>
+</model-viewer>
+
+<script>
+(function () {
+  var mv = document.getElementById('mv');
+  mv.classList.add('hide-info');
+  var bar = document.getElementById('bar');
+  var progress = document.getElementById('progress');
+  var loadingText = document.getElementById('loadingText');
+  var hint = document.getElementById('hint');
+  var btnRotate = document.getElementById('btnRotate');
+  var btnInfo = document.getElementById('btnInfo');
+  var hotspots = mv.querySelectorAll('.hotspot');
+  var idleTimer = null;
+  var userWantsRotate = false;
+
+  // Hide labels on surfaces facing away from the current camera angle.
+  // Hotspot data-normal values are model-space surface normals.
+  function updateHotspotLabelsForView() {
+    var orbit;
+    try { orbit = mv.getCameraOrbit(); } catch (err) { return; }
+    if (!orbit) return;
+
+    // model-viewer orbit: theta is azimuth, phi is polar angle from the top.
+    var sinPhi = Math.sin(orbit.phi);
+    var cameraX = Math.sin(orbit.theta) * sinPhi;
+    var cameraY = Math.cos(orbit.phi);
+    var cameraZ = Math.cos(orbit.theta) * sinPhi;
+
+    hotspots.forEach(function (h) {
+      var raw = (h.getAttribute('data-normal') || '').match(/-?\d*\.?\d+/g);
+      if (!raw || raw.length < 3) return;
+      var nx = Number(raw[0]), ny = Number(raw[1]), nz = Number(raw[2]);
+      var length = Math.hypot(nx, ny, nz) || 1;
+      var facing = (nx * cameraX + ny * cameraY + nz * cameraZ) / length;
+      // A small positive threshold avoids labels popping up at grazing angles.
+      h.classList.toggle('angle-hidden', facing < 0.18);
+    });
+  }
+
+  // Loading progress
+  mv.addEventListener('progress', function (e) {
+    var p = e.detail.totalProgress || 0;
+    bar.style.width = (p * 100) + '%';
+    if (p >= 1) { progress.classList.add('done'); loadingText.classList.add('done'); }
+  });
+  mv.addEventListener('load', function () {
+    updateHotspotLabelsForView();
+    progress.classList.add('done');
+    loadingText.classList.add('done');
+    setTimeout(function () { hint.classList.add('hide'); }, 4000);
+  });
+  mv.addEventListener('error', function () {
+    loadingText.textContent = 'Failed to load the model. Please refresh the page.';
+    loadingText.classList.remove('done');
+  });
+
+  // Pause auto-rotate while the user interacts, resume after 4 seconds of idle
+  function setRotate(on) {
+    if (on) mv.setAttribute('auto-rotate', ''); else mv.removeAttribute('auto-rotate');
+    btnRotate.classList.toggle('on', on);
+  }
+  mv.addEventListener('camera-change', function (e) {
+    updateHotspotLabelsForView();
+    if (e.detail.source !== 'user-interaction') return;
+    hint.classList.add('hide');
+    if (!userWantsRotate) return;
+    setRotate(false);
+    clearTimeout(idleTimer);
+    idleTimer = setTimeout(function () { setRotate(true); }, 60000);
+  });
+
+  // Toolbar
+  btnRotate.addEventListener('click', function () {
+    userWantsRotate = !mv.hasAttribute('auto-rotate');
+    clearTimeout(idleTimer);
+    setRotate(userWantsRotate);
+  });
+  btnInfo.addEventListener('click', function () {
+    var show = mv.classList.toggle('hide-info') === false;
+    btnInfo.classList.toggle('on', show);
+    if (!show) hotspots.forEach(function (o) { o.classList.remove('open'); });
+  });
+  document.getElementById('btnReset').addEventListener('click', function () {
+    hotspots.forEach(function (o) { o.classList.remove('open'); });
+    mv.cameraOrbit = '0deg 90deg 90%';
+    mv.cameraTarget = '0m 0.95m 0m';
+    mv.fieldOfView = 'auto';
+    mv.jumpCameraToGoal();
+  });
+  document.getElementById('btnFull').addEventListener('click', function () {
+    var el = document.documentElement;
+    if (!document.fullscreenElement) { (el.requestFullscreen || el.webkitRequestFullscreen || function () {}).call(el); }
+    else { (document.exitFullscreen || document.webkitExitFullscreen).call(document); }
+  });
+
+  // Debug mode: add ?debug=1 to the URL, then click the model to read hotspot coordinates
+  if (location.search.indexOf('debug=1') !== -1) {
+    var box = document.createElement('div');
+    box.style.cssText = 'position:absolute;left:8px;top:8px;background:#000c;color:#fff;font:12px monospace;padding:6px 8px;border-radius:6px;z-index:9;max-width:70%';
+    box.textContent = 'Click the model to get coordinates';
+    document.body.appendChild(box);
+    mv.addEventListener('click', function (e) {
+      var hit = mv.positionAndNormalFromPoint(e.clientX, e.clientY);
+      if (hit) box.textContent = 'data-position="' + hit.position.toString() + '"  data-normal="' + hit.normal.toString() + '"';
+    });
+  }
+})();
+</script>
+</body>
+</html>
