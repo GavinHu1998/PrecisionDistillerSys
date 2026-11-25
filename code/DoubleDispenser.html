@@ -1,0 +1,605 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3D Model</title>
+
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: transparent;
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+
+  model-viewer {
+    width: 100%;
+    height: 100%;
+    --poster-color: transparent;
+    outline: none;
+  }
+
+  /* Loading bar */
+  .progress {
+    position: absolute;
+    left: 50%;
+    bottom: 50%;
+    width: min(220px, 60%);
+    height: 4px;
+    transform: translateX(-50%);
+    background: rgba(128,128,128,.25);
+    border-radius: 2px;
+    overflow: hidden;
+    transition: opacity .4s;
+  }
+
+  .progress.done {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .progress .bar {
+    height: 100%;
+    width: 0;
+    background: #1a73e8;
+    transition: width .15s;
+  }
+
+  .loading-text {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(50% + 12px);
+    text-align: center;
+    font-size: 13px;
+    color: #666;
+    transition: opacity .4s;
+  }
+
+  .loading-text.done {
+    opacity: 0;
+  }
+
+  /* Toolbar */
+  .toolbar {
+    position: absolute;
+    right: 12px;
+    top: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 5;
+  }
+
+  .toolbar button {
+    width: 40px;
+    height: 40px;
+    border: 0;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 18px;
+    background: rgba(255,255,255,.92);
+    color: #222;
+    box-shadow: 0 1px 4px rgba(0,0,0,.25);
+  }
+
+  .toolbar button:hover {
+    background: #fff;
+  }
+
+  .toolbar button:focus-visible {
+    outline: 2px solid #1a73e8;
+    outline-offset: 2px;
+  }
+
+  .toolbar button.on {
+    background: #1a73e8;
+    color: #fff;
+  }
+
+  /* Hotspots */
+  .hotspot {
+    display: block;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    background: #1a73e8;
+    box-shadow: 0 1px 4px rgba(0,0,0,.4);
+    cursor: pointer;
+    padding: 0;
+    position: relative;
+    z-index: 3;
+    transition: opacity .25s;
+  }
+
+  .hotspot::after {
+    content: "+";
+    color: #fff;
+    font-size: 16px;
+    line-height: 20px;
+    display: block;
+    text-align: center;
+  }
+
+  .hotspot:not([data-visible]) {
+    opacity: .6;
+  }
+
+  .hotspot .label {
+    position: absolute;
+    left: 32px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: max-content;
+    max-width: 190px;
+    background: #fff;
+    color: #222;
+    padding: 8px 10px;
+    border-radius: 8px;
+    font-size: 13px;
+    line-height: 1.35;
+    text-align: left;
+    box-shadow: 0 1px 4px rgba(0,0,0,.3);
+    opacity: 1;
+    pointer-events: none;
+    transition: opacity .2s;
+  }
+
+  /* Hide both dot and description when facing away */
+  .hotspot.angle-hidden {
+    opacity: 0 !important;
+    pointer-events: none;
+  }
+
+  .hotspot.angle-hidden .label {
+    opacity: 0 !important;
+  }
+
+  .hotspot.angle-hidden.open .label {
+    opacity: 1 !important;
+  }
+
+  .hotspot .label strong {
+    display: block;
+    font-size: 13px;
+    margin-bottom: 2px;
+  }
+
+  .hotspot .label .desc {
+    display: block;
+    font-size: 12px;
+    color: #555;
+  }
+
+  /* Description visibility */
+  .hide-info .hotspot .label {
+    opacity: 0;
+  }
+
+  .hide-info .hotspot:hover .label,
+  .hide-info .hotspot:focus .label,
+  .hide-info .hotspot.open .label {
+    opacity: 1;
+  }
+
+  /* Hint */
+  .hint {
+    position: absolute;
+    left: 50%;
+    bottom: 16px;
+    transform: translateX(-50%);
+    padding: 8px 14px;
+    border-radius: 20px;
+    background: rgba(0,0,0,.65);
+    color: #fff;
+    font-size: 13px;
+    transition: opacity .6s;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+
+  .hint.hide {
+    opacity: 0;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      transition: none !important;
+    }
+  }
+</style>
+
+<script type="module"
+src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js">
+</script>
+
+</head>
+
+<body>
+
+<model-viewer
+  id="mv"
+  src="https://pdc-vol2-010526253820-us-east-1-an.s3.us-east-1.amazonaws.com/Double_opt.glb"
+  alt="3D Model"
+  loading="eager"
+  reveal="auto"
+
+  camera-orbit="-90deg 75deg 120%"
+  camera-controls
+  auto-rotate-delay="0"
+  rotation-per-second="20deg"
+
+  touch-action="pan-y"
+  interaction-prompt="none"
+  shadow-intensity="1"
+  shadow-softness="0.8"
+  environment-image="legacy"
+  exposure="1.8"
+  min-camera-orbit="auto auto 60%"
+  max-camera-orbit="auto auto 250%">
+
+  <!-- Loading progress -->
+  <div class="progress" id="progress" slot="progress-bar">
+    <div class="bar" id="bar"></div>
+  </div>
+
+  <div class="loading-text" id="loadingText">
+    Loading model...
+  </div>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <button id="btnRotate" title="Auto-rotate"
+      aria-label="Toggle auto-rotate">&#10227;</button>
+
+    <button id="btnInfo" title="Show or hide descriptions"
+      aria-label="Show or hide descriptions">&#9432;</button>
+
+    <button id="btnReset" title="Reset view"
+      aria-label="Reset view">&#8962;</button>
+
+    <button id="btnFull" title="Fullscreen"
+      aria-label="Toggle fullscreen">&#9974;</button>
+  </div>
+
+  <div class="hint" id="hint">
+    Drag to rotate, pinch or scroll to zoom
+  </div>
+
+</model-viewer>
+
+
+<script>
+(function () {
+
+  var mv = document.getElementById('mv');
+
+  mv.classList.add('hide-info');
+
+  var bar = document.getElementById('bar');
+  var progress = document.getElementById('progress');
+  var loadingText = document.getElementById('loadingText');
+  var hint = document.getElementById('hint');
+
+  var btnRotate = document.getElementById('btnRotate');
+  var btnInfo = document.getElementById('btnInfo');
+
+  var hotspots = mv.querySelectorAll('.hotspot');
+
+  var idleTimer = null;
+  var userWantsRotate = false;
+
+
+  // ==========================================
+  // 1. GLB MATERIAL FIX
+  // ==========================================
+
+  // Keywords used to identify metal materials.
+  // Add your actual material names here if necessary.
+  var METAL_KEYWORDS = [
+    'metal',
+    'stainless',
+    'steel'
+  ];
+
+ 
+async function fixModelMaterials() {
+
+  try {
+
+    if (!mv.model || !mv.model.materials) return;
+
+    var materials = mv.model.materials;
+
+    console.log('========== METAL 3 SEARCH ==========');
+
+    await Promise.all(
+      materials.map(function (material) {
+        return material.ensureLoaded();
+      })
+    );
+
+    materials.forEach(function (material) {
+
+      console.log(
+        'Material:',
+        JSON.stringify(material.name),
+        '| Double-Sided:', material.getDoubleSided(),
+        '| Alpha Mode:', material.getAlphaMode()
+      );
+
+      // Match the actual material name.
+      if ((material.name || '').trim().toLowerCase() === 'metal 3') {
+
+        material.setDoubleSided(true);
+        material.setAlphaMode('OPAQUE');
+
+        console.log('[FIXED] Metal 3');
+
+        console.log(
+          'Final Double-Sided:',
+          material.getDoubleSided(),
+          '| Final Alpha Mode:',
+          material.getAlphaMode()
+        );
+
+      }
+
+    });
+
+    console.log('========== SEARCH COMPLETE ==========');
+
+  } catch (error) {
+
+    console.error('[Material Fix Error]', error);
+
+  }
+
+}
+
+
+
+  // ==========================================
+  // 2. HOTSPOT VIEW DIRECTION
+  // ==========================================
+
+  function updateHotspotLabelsForView() {
+
+    var orbit;
+
+    try {
+      orbit = mv.getCameraOrbit();
+    } catch (err) {
+      return;
+    }
+
+    if (!orbit) return;
+
+    var sinPhi = Math.sin(orbit.phi);
+
+    var cameraX = Math.sin(orbit.theta) * sinPhi;
+    var cameraY = Math.cos(orbit.phi);
+    var cameraZ = Math.cos(orbit.theta) * sinPhi;
+
+    hotspots.forEach(function (h) {
+
+      var raw = (h.getAttribute('data-normal') || '')
+        .match(/-?\d*\.?\d+/g);
+
+      if (!raw || raw.length < 3) return;
+
+      var nx = Number(raw[0]);
+      var ny = Number(raw[1]);
+      var nz = Number(raw[2]);
+
+      var length = Math.hypot(nx, ny, nz) || 1;
+
+      var facing =
+        (nx * cameraX + ny * cameraY + nz * cameraZ) / length;
+
+      h.classList.toggle('angle-hidden', facing < 0.18);
+
+    });
+
+  }
+
+
+  // ==========================================
+  // 3. LOADING PROGRESS
+  // ==========================================
+
+  mv.addEventListener('progress', function (e) {
+
+    var p = e.detail.totalProgress || 0;
+
+    bar.style.width = (p * 100) + '%';
+
+    if (p >= 1) {
+      progress.classList.add('done');
+      loadingText.classList.add('done');
+    }
+
+  });
+
+
+mv.addEventListener('load', async () => {
+  await mv.model.materials.forEach(material => {
+    material.setDoubleSided(true);
+
+    if (material.getAlphaMode() === 'BLEND') {
+      material.setAlphaMode('OPAQUE');
+
+      console.log(
+        '[Test Fix] Alpha Mode changed:',
+        material.name
+      );
+    }
+  });
+
+  console.log('[Test Fix] Completed');
+});
+
+
+  mv.addEventListener('error', function () {
+
+    loadingText.textContent =
+      'Failed to load the model. Please refresh the page.';
+
+    loadingText.classList.remove('done');
+
+  });
+
+
+  // ==========================================
+  // 4. AUTO ROTATION
+  // ==========================================
+
+  function setRotate(on) {
+
+    if (on) {
+      mv.setAttribute('auto-rotate', '');
+    } else {
+      mv.removeAttribute('auto-rotate');
+    }
+
+    btnRotate.classList.toggle('on', on);
+
+  }
+
+
+  mv.addEventListener('camera-change', function (e) {
+
+    updateHotspotLabelsForView();
+
+    if (e.detail.source !== 'user-interaction') return;
+
+    hint.classList.add('hide');
+
+    if (!userWantsRotate) return;
+
+    setRotate(false);
+
+    clearTimeout(idleTimer);
+
+    idleTimer = setTimeout(function () {
+      setRotate(true);
+    }, 600000);
+
+  });
+
+
+  // ==========================================
+  // 5. TOOLBAR
+  // ==========================================
+
+  btnRotate.addEventListener('click', function () {
+
+    userWantsRotate = !mv.hasAttribute('auto-rotate');
+
+    clearTimeout(idleTimer);
+
+    setRotate(userWantsRotate);
+
+  });
+
+
+  btnInfo.addEventListener('click', function () {
+
+    var show = mv.classList.toggle('hide-info') === false;
+
+    btnInfo.classList.toggle('on', show);
+
+    if (!show) {
+      hotspots.forEach(function (o) {
+        o.classList.remove('open');
+      });
+    }
+
+  });
+
+
+  document.getElementById('btnReset').addEventListener('click', function () {
+
+    hotspots.forEach(function (o) {
+      o.classList.remove('open');
+    });
+
+    mv.cameraOrbit = '-90deg 75deg 120%';
+    mv.cameraTarget = 'auto auto auto';
+    mv.fieldOfView = 'auto';
+
+    mv.jumpCameraToGoal();
+
+  });
+
+
+  document.getElementById('btnFull').addEventListener('click', function () {
+
+    var el = document.documentElement;
+
+    if (!document.fullscreenElement) {
+
+      (el.requestFullscreen ||
+       el.webkitRequestFullscreen ||
+       function () {}).call(el);
+
+    } else {
+
+      (document.exitFullscreen ||
+       document.webkitExitFullscreen).call(document);
+
+    }
+
+  });
+
+
+  // ==========================================
+  // 6. DEBUG MODE
+  // ==========================================
+
+  // Add ?debug=1 to the URL to inspect hotspot coordinates.
+
+  if (location.search.indexOf('debug=1') !== -1) {
+
+    var box = document.createElement('div');
+
+    box.style.cssText =
+      'position:absolute;left:8px;top:8px;background:#000c;' +
+      'color:#fff;font:12px monospace;padding:6px 8px;' +
+      'border-radius:6px;z-index:9;max-width:70%';
+
+    box.textContent = 'Click the model to get coordinates';
+
+    document.body.appendChild(box);
+
+
+    mv.addEventListener('click', function (e) {
+
+      var hit = mv.positionAndNormalFromPoint(
+        e.clientX,
+        e.clientY
+      );
+
+      if (hit) {
+
+        box.textContent =
+          'data-position="' + hit.position.toString() +
+          '" data-normal="' + hit.normal.toString() + '"';
+
+      }
+
+    });
+
+  }
+
+})();
+</script>
+
+</body>
+</html>
